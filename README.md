@@ -1,44 +1,34 @@
-# The Data Engineering Cheatsheet
+<h1 align="center">Data Engineering Cheatsheet</h1>
 
-> One page (well, one long page) reference for everything a data engineer needs to recall under interview pressure. SQL, Python, Spark, Airflow, dbt, Kafka, schema design, and the operational vocabulary that separates seniors from staff.
+<p align="center">
+  Single page recall reference for data engineering interviews. SQL, Python, Spark, Airflow, dbt, Kafka, schema design, and pipeline patterns.
+</p>
 
-[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+<p align="center">
+  <a href="https://github.com/datadriven-io/data-engineering-cheatsheet/stargazers"><img src="https://img.shields.io/github/stars/datadriven-io/data-engineering-cheatsheet?style=flat&color=ffd33d" alt="Stars"></a>
+  <a href="https://github.com/datadriven-io/data-engineering-cheatsheet/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-CC%20BY--SA%204.0-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome">
+  <a href="https://datadriven.io"><img src="https://img.shields.io/badge/sandbox-datadriven.io-9333ea.svg" alt="Sandbox"></a>
+</p>
 
-## How to use this cheatsheet
+<p align="center">
+  <a href="#sql">SQL</a> ·
+  <a href="#python">Python</a> ·
+  <a href="#spark">Spark</a> ·
+  <a href="#airflow">Airflow</a> ·
+  <a href="#dbt">dbt</a> ·
+  <a href="#kafka">Kafka</a> ·
+  <a href="#schema-design">Schema</a> ·
+  <a href="#numbers">Numbers</a>
+</p>
 
-This is a recall aid, not a tutorial. If you have never seen window functions before, this page will not teach them to you. If you have used them and just need to remember the syntax under time pressure, this page is for you.
+---
 
-For deep teaching on any topic, follow the link to a structured lesson with runnable examples.
-
-## Related repositories
-
-This repo is the **recall reference**. The companion repos cover the same material in different formats:
-
-- **[data-engineering-interview-handbook](https://github.com/datadriven-io/data-engineering-interview-handbook)** is the **full chapter by chapter handbook** for learning the underlying concepts.
-- **[data-engineering-interview-questions](https://github.com/datadriven-io/data-engineering-interview-questions)** is the **1400+ practice question bank**.
-- **[system-design-for-data-engineers](https://github.com/datadriven-io/system-design-for-data-engineers)** has **120 long form pipeline case studies**.
-- **[data-engineer-interview-prep](https://github.com/datadriven-io/data-engineer-interview-prep)** is an **8 week structured practice schedule**.
-- **[data-engineer-interview-handbook](https://github.com/datadriven-io/data-engineer-interview-handbook)** is the **7 day sprint** version of the handbook.
-- **[awesome-data-engineering-interview](https://github.com/datadriven-io/awesome-data-engineering-interview)** is the **curated resource list**.
-
-## Contents
-
-1. [SQL](#sql)
-2. [Python](#python)
-3. [Spark](#spark)
-4. [Airflow](#airflow)
-5. [dbt](#dbt)
-6. [Kafka](#kafka)
-7. [Schema design](#schema-design)
-8. [Pipeline architecture vocabulary](#pipeline-architecture-vocabulary)
-9. [Storage formats and tradeoffs](#storage-formats-and-tradeoffs)
-10. [The numbers every DE should know](#the-numbers-every-de-should-know)
+This is a recall aid, not a tutorial. If you have never seen window functions, this page will not teach them. If you have used them and need to recall the syntax under pressure, this page is for you. For deeper teaching, follow the link to a structured lesson.
 
 ## SQL
 
 ### Window functions
-
-The single highest leverage SQL topic for DE interviews. Memorize the syntax.
 
 ```sql
 SELECT
@@ -56,40 +46,39 @@ SELECT
 FROM events;
 ```
 
-**Traps to remember:**
+Traps:
 
-- `ROWS` counts physical rows. `RANGE` counts values. If days can be missing, use `RANGE BETWEEN INTERVAL '6' DAY PRECEDING AND CURRENT ROW`, not `ROWS`.
+- `ROWS` counts physical rows. `RANGE` counts values. If days can be missing, use `RANGE BETWEEN INTERVAL '6' DAY PRECEDING AND CURRENT ROW`.
 - `RANK` leaves gaps. `DENSE_RANK` does not. `ROW_NUMBER` is unique.
-- `LAG` and `LEAD` accept a default for the boundary case: `LAG(x, 1, 0)`.
-- `PARTITION BY` resets the window. `ORDER BY` sorts within it.
+- `LAG` and `LEAD` accept a default for the boundary: `LAG(x, 1, 0)`.
 
-Drill: <https://datadriven.io/sql-window-functions-practice>. Lesson: <https://datadriven.io/learn/window-functions-advanced>.
+Lesson: [window functions advanced](https://datadriven.io/learn/window-functions-advanced). Drill: [datadriven.io/sql-window-functions-practice](https://datadriven.io/sql-window-functions-practice).
 
 ### Joins
 
-| Type | When to use | Trap |
+| Type | Use when | Trap |
 |---|---|---|
-| `INNER` | Both sides must have a match | Silently drops rows you expected to keep |
-| `LEFT` | Keep all rows from the left | Beware of right side fan out blowing up the result |
-| `FULL OUTER` | Keep everything from both sides | Often a sign you should have unioned instead |
+| `INNER` | Both sides must match | Silently drops rows |
+| `LEFT` | Keep all left rows | Right side fan out blows up the result |
+| `FULL OUTER` | Keep everything | Often a sign you should have unioned |
 | `CROSS` | Cartesian product | Almost always a mistake |
-| `LATERAL` | Reference left side from a subquery on the right | Postgres and Snowflake syntax differs |
+| `LATERAL` | Reference left from a right side subquery | Postgres and Snowflake syntax differs |
 | Semi (`EXISTS`) | Filter, do not project | Faster than `IN` for large lists |
-| Anti (`NOT EXISTS`) | Filter out matches | Beware of `NULL` semantics with `NOT IN` |
+| Anti (`NOT EXISTS`) | Filter out matches | `NOT IN` is `NULL` unsafe |
 
-Lesson: <https://datadriven.io/learn/joins-advanced>.
+Lesson: [joins advanced](https://datadriven.io/learn/joins-advanced).
 
-### NULL semantics, the three valued logic trap
+### NULL semantics
 
 ```sql
-SELECT NULL = NULL;      -- NULL, not TRUE
-SELECT NULL <> NULL;     -- NULL, not FALSE
-SELECT NULL IS NULL;     -- TRUE
+SELECT NULL = NULL;            -- NULL, not TRUE
+SELECT NULL <> NULL;           -- NULL, not FALSE
+SELECT NULL IS NULL;           -- TRUE
 WHERE col IN (1, 2, NULL);     -- TRUE if col=1 or 2, NULL otherwise
 WHERE col NOT IN (1, 2, NULL); -- always NULL, filters out everything
 ```
 
-Use `IS DISTINCT FROM` and `IS NOT DISTINCT FROM` when you want NULL safe equality.
+Use `IS DISTINCT FROM` and `IS NOT DISTINCT FROM` for NULL safe equality.
 
 ### Aggregation patterns
 
@@ -106,73 +95,60 @@ SELECT
 FROM events
 GROUP BY user_id;
 
--- Distinct count
-SELECT COUNT(DISTINCT user_id) FROM events;
-
 -- Approximate distinct count for big data
 SELECT APPROX_COUNT_DISTINCT(user_id) FROM events;
 ```
 
-Lesson: <https://datadriven.io/learn/aggregating-advanced>.
+Lesson: [aggregating advanced](https://datadriven.io/learn/aggregating-advanced).
 
 ### Date and time
 
 ```sql
--- Truncate to day
 DATE_TRUNC('day', ts)
-
--- Difference in days
 DATEDIFF('day', start_ts, end_ts)
-
--- First day of month
 DATE_TRUNC('month', CURRENT_DATE)
-
--- Bucket events by week
 DATE_TRUNC('week', event_time)
 ```
 
-Watch out for timezone semantics. `TIMESTAMP` and `TIMESTAMPTZ` are not the same. Most "weekly counts are off by one" bugs are timezone bugs.
-
-Reference: <https://datadriven.io/sql-tutorial>.
+Most "weekly counts off by one" bugs are timezone bugs. `TIMESTAMP` and `TIMESTAMPTZ` are not the same. Reference: [datadriven.io/sql-tutorial](https://datadriven.io/sql-tutorial).
 
 ### Performance reasoning
 
-Things to mention in any "why is this slow" question:
+Mention these in any "why is this slow" question:
 
-1. Predicate pushdown. Are filters being applied early?
-2. Partition pruning. Is the partition column in the filter?
+1. Predicate pushdown. Filters applied early.
+2. Partition pruning. Partition column in the filter.
 3. Join order. Smaller side on the build side of a hash join.
-4. Skew. One key dominating the distribution.
+4. Skew. One key dominating distribution.
 5. Spill to disk. Memory pressure during sort or aggregate.
-6. Sort keys (Redshift) or clustering keys (Snowflake, BigQuery).
+6. Sort keys (Redshift), clustering keys (Snowflake, BigQuery).
 
-Reference: <https://datadriven.io/sql-query-optimization>.
+Reference: [datadriven.io/sql-query-optimization](https://datadriven.io/sql-query-optimization).
 
 ## Python
 
 ### Data wrangling patterns
 
 ```python
+import itertools
+from collections import defaultdict, Counter
+
 # Chunk an iterable into batches of n
 def batched(iterable, n):
     it = iter(iterable)
-    while True:
-        chunk = list(itertools.islice(it, n))
-        if not chunk: return
+    while chunk := list(itertools.islice(it, n)):
         yield chunk
 
 # Group by key
-from collections import defaultdict
 grouped = defaultdict(list)
 for record in records:
     grouped[record["key"]].append(record)
 
-# Counter for top N
-from collections import Counter
+# Top N with Counter
 top10 = Counter(items).most_common(10)
 
 # Hash partitioning
-def partition_key(record, n_partitions):
+def partition(record, n_partitions):
     return hash(record["id"]) % n_partitions
 
 # Interval merging
@@ -186,10 +162,10 @@ def merge(intervals):
             out.append((start, end))
     return out
 
-# Sessionization (gap based)
+# Sessionization with inactivity gap
 def sessionize(events, gap_seconds):
     events.sort(key=lambda e: e["t"])
-    session, last_t, sid = [], None, 0
+    last_t, sid = None, 0
     for e in events:
         if last_t is None or e["t"] - last_t > gap_seconds:
             sid += 1
@@ -198,7 +174,7 @@ def sessionize(events, gap_seconds):
     return events
 ```
 
-Lesson: <https://datadriven.io/learn/collections-advanced>.
+Lesson: [collections advanced](https://datadriven.io/learn/collections-advanced).
 
 ### Complexity cheatsheet
 
@@ -207,16 +183,11 @@ Lesson: <https://datadriven.io/learn/collections-advanced>.
 | Lookup | O(n) | O(1) | O(1) |
 | Insert | O(1) end | O(1) | O(1) |
 | Delete | O(n) | O(1) | O(1) |
-| Iteration | O(n) | O(n) | O(n) |
 | Membership (`in`) | O(n) | O(1) | O(1) |
 
-If you find yourself writing nested loops, ask whether a dict or set can flatten it.
+Nested loops are usually flattenable with a dict or set lookup.
 
-Lesson: <https://datadriven.io/learn/complexity-advanced>.
-
-### Generators and iterators
-
-Use generators when memory matters more than indexing. Almost every "process this huge file" question has a generator answer.
+### Generators
 
 ```python
 def read_lines(path):
@@ -233,49 +204,34 @@ def filter_recent(records, since):
         if r["ts"] >= since:
             yield r
 
-# pipeline composition
+# pipeline composition, constant memory
 for r in filter_recent(parse(read_lines("events.jsonl")), since):
     process(r)
 ```
 
 ## Spark
 
-### The mental model
+Spark is lazy. Transformations build a DAG. Actions trigger execution. Catalyst optimizes the DAG before any work happens.
 
-Spark is lazy. Transformations build a DAG. Actions trigger execution. The DAG gets optimized by Catalyst before any work happens.
+### Narrow vs wide
 
-```python
-df = spark.read.parquet("s3://bucket/events/")  # transformation, no work
-df = df.filter(df.event_type == "purchase")     # transformation, no work
-df = df.groupBy("user_id").sum("amount")        # transformation, no work
-df.write.parquet("s3://bucket/agg/")            # action, work happens
-```
-
-### Narrow vs wide transformations
-
-| Narrow | Wide (causes shuffle) |
+| Narrow (no shuffle) | Wide (causes shuffle) |
 |---|---|
 | `filter`, `map`, `select`, `withColumn` | `groupBy`, `join`, `distinct`, `repartition`, `orderBy` |
 
-Shuffles are expensive. Minimize them.
-
 ### Performance tactics
 
-1. **Predicate pushdown.** Filter as early as possible, especially on partitioned columns.
-2. **Column pruning.** Only read the columns you need. Parquet makes this free.
-3. **Broadcast join.** When one side is under ~10 MB, force `broadcast(small_df)`.
-4. **Skew.** Salt high frequency keys to spread the load.
-5. **AQE (Adaptive Query Execution).** Enable it. Spark 3 onward.
-6. **File size.** Aim for 128 to 512 MB output files. Too small and metadata kills you, too large and you lose parallelism.
-7. **Z ordering** (Delta) or **clustering** (Iceberg) for read locality on common filter columns.
+1. Predicate pushdown. Filter early, especially on partitioned columns.
+2. Column pruning. Read only what you need.
+3. Broadcast join when one side is under ~10 MB: `broadcast(small_df)`.
+4. Salt high frequency keys to fix skew.
+5. Enable Adaptive Query Execution (AQE).
+6. Target 128 to 512 MB output files.
+7. Z order (Delta) or cluster (Iceberg) on common filter columns.
 
-### When NOT to use Spark
-
-If your data fits in memory on one machine, use DuckDB or pandas. Spark has a real cold start cost.
+If your data fits on one machine, use DuckDB or pandas. Spark has cold start cost.
 
 ## Airflow
-
-### DAG basics
 
 ```python
 from airflow import DAG
@@ -285,51 +241,39 @@ from datetime import datetime
 with DAG(
     "my_pipeline",
     start_date=datetime(2026, 1, 1),
-    schedule="0 * * * *",          # hourly
-    catchup=False,                 # do not backfill on resume
-    max_active_runs=1,             # serialize runs
+    schedule="0 * * * *",
+    catchup=False,
+    max_active_runs=1,
     default_args={"retries": 3},
 ) as dag:
-    t1 = PythonOperator(task_id="extract",   python_callable=extract)
-    t2 = PythonOperator(task_id="transform", python_callable=transform)
-    t3 = PythonOperator(task_id="load",      python_callable=load)
-    t1 >> t2 >> t3
+    extract   = PythonOperator(task_id="extract",   python_callable=extract_fn)
+    transform = PythonOperator(task_id="transform", python_callable=transform_fn)
+    load      = PythonOperator(task_id="load",      python_callable=load_fn)
+    extract >> transform >> load
 ```
 
-### Vocabulary you should know
+### Vocabulary
 
-- **DAG.** Directed acyclic graph of tasks.
-- **Task.** A unit of work. Maps to an operator.
-- **Operator.** A task type. Python, Bash, SQL, KubernetesPod, etc.
-- **Sensor.** A task that polls for a condition.
-- **XCom.** Cross task communication. Use sparingly. Not for big data.
-- **Backfill.** Re run historical schedules.
-- **Catchup.** Should Airflow auto run missed schedules on startup. Almost always `False`.
-- **Pool.** Concurrency limiter for shared resources.
-- **TaskGroup.** Visual grouping of tasks. No execution semantics.
-- **Variable / Connection.** Stored config and credentials.
-- **Idempotency.** Critical. Tasks must produce the same output for the same `logical_date`.
+DAG, task, operator, sensor, XCom, backfill, catchup, pool, TaskGroup, variable, connection, idempotency.
 
-### Common interview questions
+### Common questions
 
-1. "How would you backfill 6 months of data?" Use `airflow dags backfill` with bounded date range and a parallelism cap. Confirm idempotency first.
-2. "Your DAG is running long. What do you check?" Task duration in the UI, pool saturation, dependencies between tasks, parallelism settings, executor health.
-3. "How do you avoid scheduling drift?" Use `schedule_interval`, not `start_date` arithmetic. Use `catchup=False`.
+1. *Backfill 6 months of data?* `airflow dags backfill` with bounded date range and parallelism cap. Confirm idempotency first.
+2. *DAG running long?* Check task duration in the UI, pool saturation, parallelism settings, executor health.
+3. *Avoid scheduling drift?* Use `schedule_interval`, not `start_date` arithmetic. `catchup=False`.
 
 ## dbt
 
-### The mental model
-
-dbt is a SQL compiler with a dependency graph. You write SQL `SELECT` statements. dbt wraps them in `CREATE TABLE` or `CREATE VIEW` and runs them in dependency order.
+dbt compiles SQL `SELECT` statements into `CREATE TABLE` or `CREATE VIEW`, in dependency order.
 
 ### Materializations
 
-| Type | When | Tradeoff |
+| Type | Use when | Tradeoff |
 |---|---|---|
-| `view` | Cheap models, no big data scans | Recomputed on every query |
-| `table` | Expensive transforms read frequently | Storage cost, freshness lag |
-| `incremental` | Big tables with append only or update only patterns | Backfill complexity |
-| `ephemeral` | Reused CTEs without materialization | Hard to debug |
+| `view` | Cheap models | Recomputed on every query |
+| `table` | Expensive transforms read often | Storage cost, freshness lag |
+| `incremental` | Big append or update tables | Backfill complexity |
+| `ephemeral` | Reused CTEs | Hard to debug |
 
 ### Incremental pattern
 
@@ -342,7 +286,7 @@ WHERE event_time > (SELECT MAX(event_time) FROM {% raw %}{{ this }}{% endraw %})
 {% raw %}{% endif %}{% endraw %}
 ```
 
-### Tests, the easy win
+### Tests
 
 ```yaml
 models:
@@ -357,50 +301,31 @@ models:
               field: customer_id
 ```
 
-### Vocabulary
-
-- **Model.** A `SELECT` statement. The unit of dbt.
-- **Source.** A reference to a raw table.
-- **Ref.** `{% raw %}{{ ref('model_name') }}{% endraw %}`. The dependency mechanism.
-- **Seed.** CSV files compiled into tables. Use sparingly.
-- **Snapshot.** SCD type 2 implementation in dbt.
-- **Macro.** Reusable Jinja function.
-- **Exposure.** Downstream consumer of dbt output.
-
 ## Kafka
 
-### The mental model
+Distributed, partitioned, replicated, append only log.
 
-A distributed, partitioned, replicated, append only log.
+### Vocabulary
 
-- **Topic.** A named log.
-- **Partition.** A slice of a topic. Messages within a partition are ordered.
-- **Replication factor.** How many copies of each partition.
-- **Producer.** Writes messages, picks partition by key (or round robin).
-- **Consumer.** Reads from one or more partitions. Tracks offsets.
-- **Consumer group.** A set of consumers sharing offsets. One partition is read by exactly one consumer in the group at a time.
-- **Offset.** Monotonic position in a partition. Consumer commits this when done.
-- **Retention.** Time or size based. Old messages eventually drop off.
+Topic, partition, replication factor, producer, consumer, consumer group, offset, retention.
 
 ### Delivery semantics
 
 | Semantic | When |
 |---|---|
-| At most once | Commit before processing. Lose on crash. |
-| At least once | Commit after processing. Reprocess on crash. The default. |
-| Exactly once | Idempotent producer plus transactional consumer. Possible since Kafka 0.11, with caveats. |
+| At most once | Commit before processing |
+| At least once | Commit after processing (default) |
+| Exactly once | Idempotent producer + transactional consumer |
 
-### Common interview questions
+### Common questions
 
-1. "How do you guarantee ordering?" Per partition only. Pick a partition key that groups what must be ordered together.
-2. "How do you reprocess?" Reset consumer offset to earlier point. Or read from a different consumer group.
-3. "What is rebalance?" Consumers join or leave a group, partition assignment is recomputed. Causes brief processing pause.
+1. *Guarantee ordering?* Per partition only. Pick a partition key that groups what must be ordered together.
+2. *Reprocess?* Reset offset, or read from a different consumer group.
+3. *Rebalance?* Consumers join or leave a group, partition assignment recomputed, brief processing pause.
 
 ## Schema design
 
 ### Star schema
-
-Fact table at the center. Dimension tables around it. Joins on surrogate keys.
 
 ```
             +-------------+
@@ -422,70 +347,53 @@ Fact table at the center. Dimension tables around it. Joins on surrogate keys.
 |---|---|
 | 0 | No change. History lost. |
 | 1 | Overwrite. History lost. |
-| 2 | Add new row with effective dates. History preserved. |
-| 3 | Add new column for previous value. Limited history. |
-| 4 | History table separate from current table. |
-| 6 | Combination of 1, 2, and 3. |
+| 2 | New row with effective dates. History preserved. |
+| 3 | New column for previous value. Limited history. |
+| 4 | Separate history table. |
+| 6 | Combination of 1, 2, 3. |
 
-When in doubt, use type 2. It is the only one that preserves full history.
+When in doubt, use type 2.
 
-Lesson: <https://datadriven.io/learn/data-modeling-scd>.
+Lesson: [SCD](https://datadriven.io/learn/data-modeling-scd).
 
 ### Fact table grain
 
-The grain is the unit of one row. Pick it before anything else. Examples:
-
-- One row per order
-- One row per order line item
-- One row per page view
-- One row per session
-- One row per user per day
-
-Mixing grains in one table is the most common schema design mistake.
-
-### When to denormalize
-
-Almost never on the operational side. Often on the analytics side. The tradeoff is read speed vs write complexity vs storage cost. In a warehouse, denormalize. In an OLTP database, normalize.
-
-Lesson: <https://datadriven.io/learn/data-modeling-normalization>.
+Pick the grain first. Examples: one row per order, per order line, per page view, per session, per user per day. Mixing grains in one table is the most common schema design mistake.
 
 ## Pipeline architecture vocabulary
 
-| Term | What it means |
+| Term | Means |
 |---|---|
-| Bronze / silver / gold | Medallion lakehouse layers. Raw, cleaned, business ready. |
-| CDC | Change data capture. Replicate row level changes from a source database. |
-| Backfill | Re run a pipeline for a historical time window. |
-| Replay | Re emit messages from a log to recover state. |
-| Late arriving fact | A fact whose dimension is not yet present. Hold or fill or reject. |
-| Late arriving dimension | A dimension that updates after facts have been processed. Backfill or use SCD2. |
-| Watermark | A timestamp threshold past which late events are dropped. |
-| Idempotency | Same input produces same output, even on retry. |
-| Exactly once | Each input record affects state exactly one time. |
-| At least once | Each input record affects state one or more times. The default. |
-| Lambda architecture | Batch path plus stream path, merged in serving. |
-| Kappa architecture | Stream only, replay log to backfill. |
-| Medallion | Lakehouse layered model. |
-| Reverse ETL | Push warehouse data back into operational tools. |
+| Bronze, silver, gold | Medallion lakehouse layers (raw, cleaned, business ready) |
+| CDC | Change data capture |
+| Backfill | Re run a pipeline for a historical window |
+| Replay | Re emit messages from a log to recover state |
+| Late arriving fact | Fact whose dimension is not yet present |
+| Late arriving dimension | Dimension that updates after facts |
+| Watermark | Threshold past which late events are dropped |
+| Idempotency | Same input produces same output, even on retry |
+| Lambda | Batch + stream paths merged in serving |
+| Kappa | Stream only, replay log to backfill |
+| Reverse ETL | Push warehouse data back into operational tools |
 
-A longer glossary lives at <https://datadriven.io/data-engineering-concepts>.
+Glossary: [datadriven.io/data-engineering-concepts](https://datadriven.io/data-engineering-concepts).
 
-## Storage formats and tradeoffs
+## Storage formats
 
 | Format | Use when | Avoid when |
 |---|---|---|
-| Parquet | Columnar analytics. The default. | Row level updates needed |
-| ORC | Hive ecosystem | Outside the Hive ecosystem |
-| Avro | Row oriented streaming. Schema evolution. | Analytical queries |
-| JSON | Flexible schema, debuggable | Anything at scale |
-| CSV | Interoperability, debugging | Anything at scale |
-| Delta / Iceberg / Hudi | ACID on object storage, time travel | Pure batch with no updates |
+| Parquet | Columnar analytics (default) | Row level updates |
+| ORC | Hive ecosystem | Outside Hive |
+| Avro | Row oriented streaming, schema evolution | Analytical queries |
+| JSON | Flexible, debuggable | Anything at scale |
+| CSV | Interoperability | Anything at scale |
+| Delta, Iceberg, Hudi | ACID on object storage, time travel | Pure batch with no updates |
 
-## The numbers every DE should know
+## Numbers
 
-Memorize these. They are the basis for the back of the envelope estimates interviewers expect.
+Order of magnitude reference for back of the envelope estimates.
 
-| Operation | Order of magnitude |
+| Operation | Order |
 |---|---|
 | L1 cache reference | 1 ns |
 | Main memory reference | 100 ns |
@@ -493,61 +401,24 @@ Memorize these. They are the basis for the back of the envelope estimates interv
 | Network round trip same DC | 500 us |
 | Disk seek | 10 ms |
 | Network round trip cross continent | 150 ms |
-| Records per second a modern Kafka cluster handles | millions |
+| Modern Kafka cluster throughput | millions of records per second |
 | Daily events at a top consumer app | billions |
-| Bytes per row in a typical event log (compressed) | 100 to 500 |
+| Bytes per row in compressed event log | 100 to 500 |
 | S3 PUT cost | ~0.005 USD per 1000 |
-| Snowflake credit cost | ~3 USD per credit (varies) |
 
-## Topic specific deep dives
+## Companion repos
 
-This cheatsheet is the recall layer. For learning the underlying concepts, follow these:
-
-- SQL: <https://datadriven.io/sql-interview-questions>
-- Python: <https://datadriven.io/python-interview-questions>
-- Data modeling: <https://datadriven.io/data-modeling-interview-questions>
-- Pipeline architecture: <https://datadriven.io/data-pipeline-interview-questions>
-- System design framework: <https://datadriven.io/data-engineering-system-design>
-- Concept index: <https://datadriven.io/data-engineering-concepts>
+- [data-engineering-interview-handbook](https://github.com/datadriven-io/data-engineering-interview-handbook). Full chapter by chapter handbook.
+- [data-engineering-interview-questions](https://github.com/datadriven-io/data-engineering-interview-questions). 1418 practice problems.
+- [system-design-for-data-engineers](https://github.com/datadriven-io/system-design-for-data-engineers). 120 case studies.
+- [data-engineer-interview-prep](https://github.com/datadriven-io/data-engineer-interview-prep). 8 week structured practice.
+- [data-engineer-interview-handbook](https://github.com/datadriven-io/data-engineer-interview-handbook). 7 day sprint.
+- [awesome-data-engineering-interview](https://github.com/datadriven-io/awesome-data-engineering-interview). Curated resources.
 
 ## Contributing
 
-Spot a wrong fact, an outdated link, or a missing pattern? Open a PR. Keep entries terse. This file is a recall aid. If your addition needs more than ten lines, link to a longer reference instead.
-
-## Frequently asked questions
-
-### What should I review the night before a data engineer interview?
-
-Window function syntax, the eight beat pipeline design framework, the four batch vs stream tradeoff numbers, the SCD type table, and your behavioral story bank. Skim this cheatsheet end to end. Do not learn anything new the night before. The goal is fast recall of what you already know.
-
-### What window function syntax do I need to memorize for a SQL interview?
-
-`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`, `LEAD`, `SUM OVER`, and `AVG OVER`, plus the `PARTITION BY ... ORDER BY ... ROWS BETWEEN N PRECEDING AND CURRENT ROW` frame syntax. The [Window functions](#window-functions) section above has the canonical examples. If you can write each one from memory under time pressure, you will pass most senior DE SQL screens.
-
-### Should I memorize Airflow operators?
-
-No. Memorize the mental model: DAGs, tasks, operators, sensors, XCom, idempotency, catchup. The exact operator class names are not the test. Interviewers want to know that you understand how a scheduler reasons about time and how to backfill safely.
-
-### What is the difference between RANGE and ROWS in window functions?
-
-`ROWS` counts physical rows in the frame. `RANGE` counts logical values. If days can be missing in your data, a `ROWS BETWEEN 6 PRECEDING AND CURRENT ROW` frame for a "rolling 7 day average" is wrong because it averages the last 7 rows of data, not the last 7 days. Use `RANGE BETWEEN INTERVAL '6' DAY PRECEDING AND CURRENT ROW` instead. This is one of the most common SQL interview traps.
-
-### What are the must know storage formats for data engineering interviews?
-
-Parquet for columnar analytics (the default), Avro for row oriented streaming with schema evolution, ORC inside the Hive ecosystem, and Delta or Iceberg or Hudi for ACID on object storage. Know the tradeoffs. See [Storage formats and tradeoffs](#storage-formats-and-tradeoffs).
-
-### How does dbt fit into a data engineering interview?
-
-dbt is the de facto warehouse transformation tool in 2026. You should know its mental model (SQL select statements compiled into a dependency graph), its materialization types (view, table, incremental, ephemeral), and the incremental pattern with `is_incremental()`. The [dbt section](#dbt) covers all of it.
-
-### What numbers should every data engineer know by heart?
-
-Latency numbers (cache, memory, SSD, network), modern Kafka throughput (millions of records per second), typical compressed event size (100 to 500 bytes), and rough cost per S3 PUT and per Snowflake credit. The [back of the envelope numbers](#the-numbers-every-de-should-know) section has the canonical list.
-
-### Is this cheatsheet free?
-
-Yes. CC BY-SA 4.0. Print it, share it, fork it.
+Spot a wrong fact, an outdated link, or a missing pattern? Open a PR. Keep entries terse. This is a recall aid. If your addition needs more than ten lines, link to a longer reference.
 
 ## License
 
-CC BY-SA 4.0. Lessons and runnable examples are hosted at <https://datadriven.io>.
+[CC BY-SA 4.0](LICENSE). Lessons hosted at [datadriven.io](https://datadriven.io).
