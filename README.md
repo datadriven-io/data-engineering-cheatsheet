@@ -10,6 +10,17 @@ This is a recall aid, not a tutorial. If you have never seen window functions be
 
 For deep teaching on any topic, follow the link to a structured lesson with runnable examples.
 
+## Related repositories
+
+This repo is the **recall reference**. The companion repos cover the same material in different formats:
+
+- **[data-engineering-interview-handbook](https://github.com/datadriven-io/data-engineering-interview-handbook)** is the **full chapter by chapter handbook** for learning the underlying concepts.
+- **[data-engineering-interview-questions](https://github.com/datadriven-io/data-engineering-interview-questions)** is the **1400+ practice question bank**.
+- **[system-design-for-data-engineers](https://github.com/datadriven-io/system-design-for-data-engineers)** has **120 long form pipeline case studies**.
+- **[data-engineer-interview-prep](https://github.com/datadriven-io/data-engineer-interview-prep)** is an **8 week structured practice schedule**.
+- **[data-engineer-interview-handbook](https://github.com/datadriven-io/data-engineer-interview-handbook)** is the **7 day sprint** version of the handbook.
+- **[awesome-data-engineering-interview](https://github.com/datadriven-io/awesome-data-engineering-interview)** is the **curated resource list**.
+
 ## Contents
 
 1. [SQL](#sql)
@@ -502,6 +513,40 @@ This cheatsheet is the recall layer. For learning the underlying concepts, follo
 ## Contributing
 
 Spot a wrong fact, an outdated link, or a missing pattern? Open a PR. Keep entries terse. This file is a recall aid. If your addition needs more than ten lines, link to a longer reference instead.
+
+## Frequently asked questions
+
+### What should I review the night before a data engineer interview?
+
+Window function syntax, the eight beat pipeline design framework, the four batch vs stream tradeoff numbers, the SCD type table, and your behavioral story bank. Skim this cheatsheet end to end. Do not learn anything new the night before. The goal is fast recall of what you already know.
+
+### What window function syntax do I need to memorize for a SQL interview?
+
+`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`, `LEAD`, `SUM OVER`, and `AVG OVER`, plus the `PARTITION BY ... ORDER BY ... ROWS BETWEEN N PRECEDING AND CURRENT ROW` frame syntax. The [Window functions](#window-functions) section above has the canonical examples. If you can write each one from memory under time pressure, you will pass most senior DE SQL screens.
+
+### Should I memorize Airflow operators?
+
+No. Memorize the mental model: DAGs, tasks, operators, sensors, XCom, idempotency, catchup. The exact operator class names are not the test. Interviewers want to know that you understand how a scheduler reasons about time and how to backfill safely.
+
+### What is the difference between RANGE and ROWS in window functions?
+
+`ROWS` counts physical rows in the frame. `RANGE` counts logical values. If days can be missing in your data, a `ROWS BETWEEN 6 PRECEDING AND CURRENT ROW` frame for a "rolling 7 day average" is wrong because it averages the last 7 rows of data, not the last 7 days. Use `RANGE BETWEEN INTERVAL '6' DAY PRECEDING AND CURRENT ROW` instead. This is one of the most common SQL interview traps.
+
+### What are the must know storage formats for data engineering interviews?
+
+Parquet for columnar analytics (the default), Avro for row oriented streaming with schema evolution, ORC inside the Hive ecosystem, and Delta or Iceberg or Hudi for ACID on object storage. Know the tradeoffs. See [Storage formats and tradeoffs](#storage-formats-and-tradeoffs).
+
+### How does dbt fit into a data engineering interview?
+
+dbt is the de facto warehouse transformation tool in 2026. You should know its mental model (SQL select statements compiled into a dependency graph), its materialization types (view, table, incremental, ephemeral), and the incremental pattern with `is_incremental()`. The [dbt section](#dbt) covers all of it.
+
+### What numbers should every data engineer know by heart?
+
+Latency numbers (cache, memory, SSD, network), modern Kafka throughput (millions of records per second), typical compressed event size (100 to 500 bytes), and rough cost per S3 PUT and per Snowflake credit. The [back of the envelope numbers](#the-numbers-every-de-should-know) section has the canonical list.
+
+### Is this cheatsheet free?
+
+Yes. CC BY-SA 4.0. Print it, share it, fork it.
 
 ## License
 
