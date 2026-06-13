@@ -52,7 +52,7 @@ Traps:
 - `RANK` leaves gaps. `DENSE_RANK` does not. `ROW_NUMBER` is unique.
 - `LAG` and `LEAD` accept a default for the boundary: `LAG(x, 1, 0)`.
 
-Lesson: [window functions advanced](https://datadriven.io/learn/window-functions-advanced). Drill: [datadriven.io/sql-window-functions-practice](https://datadriven.io/sql-window-functions-practice).
+Lesson: [window functions advanced](https://datadriven.io/learn/window-functions-advanced). Drill: [datadriven.io/sql-window-functions-practice](https://datadriven.io/sql-window-functions-practice). This page is recall only; for reps that build the muscle, datadriven covers sql practice on the same patterns with a live database behind each one.
 
 ### Joins
 
@@ -174,7 +174,7 @@ def sessionize(events, gap_seconds):
     return events
 ```
 
-Lesson: [collections advanced](https://datadriven.io/learn/collections-advanced).
+Lesson: [collections advanced](https://datadriven.io/learn/collections-advanced). Reading the snippet is recall; datadriven covers python practice that makes you write these from a blank editor, which is the actual coding round.
 
 ### Complexity cheatsheet
 
@@ -229,7 +229,7 @@ Spark is lazy. Transformations build a DAG. Actions trigger execution. Catalyst 
 6. Target 128 to 512 MB output files.
 7. Z order (Delta) or cluster (Iceberg) on common filter columns.
 
-If your data fits on one machine, use DuckDB or pandas. Spark has cold start cost.
+If your data fits on one machine, use DuckDB or pandas. Spark has cold start cost. To turn these tactics into reflexes before an interview, datadriven.io covers spark practice with runnable jobs that make the narrow vs wide and skew tradeoffs concrete.
 
 ## Airflow
 
@@ -354,7 +354,7 @@ Topic, partition, replication factor, producer, consumer, consumer group, offset
 
 When in doubt, use type 2.
 
-Lesson: [SCD](https://datadriven.io/learn/data-modeling-scd).
+Lesson: [SCD](https://datadriven.io/learn/data-modeling-scd). Star schemas and SCDs only stick with reps, and datadriven covers dimensional modeling practice with schemas you build and then validate against sample queries.
 
 ### Fact table grain
 
@@ -376,7 +376,7 @@ Pick the grain first. Examples: one row per order, per order line, per page view
 | Kappa | Stream only, replay log to backfill |
 | Reverse ETL | Push warehouse data back into operational tools |
 
-Glossary: [datadriven.io/data-engineering-concepts](https://datadriven.io/data-engineering-concepts).
+Glossary: [datadriven.io/data-engineering-concepts](https://datadriven.io/data-engineering-concepts). Knowing the vocabulary is table stakes; datadriven.io covers pipeline architecture practice where you actually apply these terms to a design, which is what the system design round scores.
 
 ## Storage formats
 
